@@ -12,15 +12,21 @@ let pieces = [];
 let pieceNames = {
   "3T": { colour: "#D6E601", fillIndex: 2 },
   "3L": { colour: "#21D7FF", fillIndex: 3 },
-  "3R": { colour: "#BA5CFE", fillIndex: 3 },
-  "1D": { colour: "#2878FE", fillIndex: 3 },
-  "4Z": { colour: "#FD3842", fillIndex: 3 },
-  "4L": { colour: "#FF9E01", fillIndex: 3 },
-  "4Sq": { colour: "#00CE9A", fillIndex: 3 },
-  "2S": { colour: "#AD8561", fillIndex: 3 },
-  "4S": { colour: "#7D9FBA", fillIndex: 3 },
+  "3R": { colour: "#BA5CFE", fillIndex: 4 },
+  "1D": { colour: "#2878FE", fillIndex: 5 },
+  "4Z": { colour: "#FD3842", fillIndex: 6 },
+  "4L": { colour: "#FF9E01", fillIndex: 7 },
+  "4Sq": { colour: "#00CE9A", fillIndex: 8 },
+  "2S": { colour: "#AD8561", fillIndex: 9 },
+  "4S": { colour: "#7D9FBA", fillIndex: 10 },
 };
 let draggingPiece;
+
+let startTime;
+
+let paused = false;
+
+let time;
 
 function setup() {
   createCanvas(1000, 800);
@@ -65,6 +71,11 @@ function setup() {
   }
 
   console.table(grid);
+
+  textSize(100);
+  textAlign(CENTER, CENTER);
+
+  startTime = new Date().getTime();
 }
 
 function draw() {
@@ -96,10 +107,30 @@ function draw() {
   for (let i = 0; i < pieces.length; i++) {
     pieces[i].draw();
   }
+
+  if (!paused) {
+    time = Math.round((new Date().getTime() - startTime) / 1000);
+  }
+  push();
+
+  fill("black");
+  text(time, 250, 600);
+  pop();
+
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length; j++) {
+      if (grid[i][j] == 0) {
+        paused = false;
+        return;
+      }
+    }
+  }
+
+  paused = true;
 }
 
 function mousePressed() {
-  for (let i = 0; i < pieces.length; i++) {
+  for (let i = pieces.length - 1; i >= 0; i--) {
     if (pieces[i].isMouseOver()) {
       isDragging = true;
       offsetX = mouseX - pieces[i].x;
@@ -107,27 +138,27 @@ function mousePressed() {
       pieces[i].snapped = false;
       draggingPiece = pieces[i];
 
-      // While the piece is in the air, the grid under it must be cleared so the piece can be replaced
-      for (let i = 0; i < grid.length; i++) {
-        for (let j = 0; j < grid[i].length; j++) {
-          if (grid[i][j] === draggingPiece.fillIndex) {
-            grid[i][j] = 0; // Replace with 0s
-          }
-        }
-      }
+      // Move the clicked piece to the end of the array
+      pieces.splice(i, 1); // Remove the piece from its current position
+      pieces.push(draggingPiece); // Append the piece to the end of the array
+
+      draggingPiece.removeFromGrid(grid);
       return;
     }
   }
 }
 
 function mouseReleased() {
-  isDragging = false;
-  draggingPiece.snapToGrid(grid, boardSquareDim);
+  if (isDragging) {
+    isDragging = false;
+    draggingPiece.snapToGrid(grid, boardSquareDim);
+  }
 }
 
 function mouseDragged() {
   if (isDragging) {
     draggingPiece.setPosition(mouseX - offsetX, mouseY - offsetY);
+    draggingPiece.removeFromGrid(grid);
   }
 }
 
