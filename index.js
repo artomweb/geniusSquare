@@ -134,6 +134,8 @@ function mouseDragged() {
 function keyPressed() {
   if (key === "r") {
     draggingPiece.rotate(grid, boardSquareDim);
+  } else if (key === "f") {
+    draggingPiece.flip(grid, boardSquareDim);
   }
 }
 

@@ -46,6 +46,7 @@ class Piece {
   rotate(grid, squareSize) {
     this.rotation += PI / 2;
     this.shapeMatrix = this.rotate90Clockwise(this.shapeMatrix);
+    this.removeFromGrid(grid);
     this.snapToGrid(grid, squareSize);
   }
 
@@ -140,16 +141,20 @@ class Piece {
       this.snapped = false;
       console.log("no snap");
 
-      for (let i = 0; i < grid.length; i++) {
-        for (let j = 0; j < grid[i].length; j++) {
-          if (grid[i][j] === this.fillIndex) {
-            grid[i][j] = 0; // Replace with 0s
-          }
-        }
-      }
+      this.removeFromGrid(grid);
     }
 
     console.table(grid);
+  }
+
+  removeFromGrid(grid) {
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[i].length; j++) {
+        if (grid[i][j] === this.fillIndex) {
+          grid[i][j] = 0; // Replace with 0s
+        }
+      }
+    }
   }
   setPosition(mx, my) {
     this.x = mx;
@@ -195,6 +200,14 @@ class Piece {
     }
 
     return newMatrix;
+  }
+
+  flip(grid, squareSize) {
+    this.shapeMatrix = this.moveToTopLeft(
+      this.shapeMatrix.map((row) => row.slice().reverse())
+    );
+    this.removeFromGrid(grid);
+    this.snapToGrid(grid, squareSize);
   }
 }
 
