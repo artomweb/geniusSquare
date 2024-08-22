@@ -24,17 +24,18 @@ let draggingPiece;
 
 let startTime;
 
-let paused = false;
+let firstDrag = false;
 
-let time;
+let time = 0;
 
 function setup(forceNew = false) {
+  document.getElementById("canvasContainer").innerHTML = "";
   let myCanvas = createCanvas(1000, 800);
   myCanvas.parent("canvasContainer");
 
   boardSquareDim = boardDim / 6;
-  let piecesX = 600;
-  let piecesY = 100;
+  let piecesX = 550;
+  let piecesY = 50;
   let offsetY = 0;
   let offsetX = 0;
   let fillIndex = 2;
@@ -61,8 +62,6 @@ function setup(forceNew = false) {
 
   textSize(100);
   textAlign(CENTER, CENTER);
-
-  startTime = new Date().getTime();
 }
 
 function draw() {
@@ -95,7 +94,7 @@ function draw() {
     pieces[i].draw();
   }
 
-  if (!paused) {
+  if (firstDrag) {
     time = Math.round((new Date().getTime() - startTime) / 1000);
   }
   push();
@@ -107,18 +106,21 @@ function draw() {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
       if (grid[i][j] == 0) {
-        paused = false;
         return;
       }
     }
   }
 
-  paused = true;
+  firstDrag = false;
 }
 
 function mousePressed() {
   for (let i = pieces.length - 1; i >= 0; i--) {
     if (pieces[i].isMouseOver()) {
+      if (!firstDrag) {
+        firstDrag = true;
+        startTime = new Date().getTime();
+      }
       isDragging = true;
       offsetX = mouseX - pieces[i].x;
       offsetY = mouseY - pieces[i].y;
@@ -212,6 +214,9 @@ function numericToAlphaGame(dice) {
 }
 
 function newGame() {
+  firstDrag = false;
+  pieces = [];
+  time = 0;
   setup(true);
 }
 
