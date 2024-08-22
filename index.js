@@ -29,7 +29,8 @@ let paused = false;
 let time;
 
 function setup(forceNew = false) {
-  createCanvas(1000, 800);
+  let myCanvas = createCanvas(1000, 800);
+  myCanvas.parent("canvasContainer");
 
   boardSquareDim = boardDim / 6;
   let piecesX = 600;
@@ -149,6 +150,7 @@ function mouseDragged() {
 }
 
 function keyPressed() {
+  if (!draggingPiece) return;
   if (key === "r") {
     draggingPiece.rotate(grid, boardSquareDim);
   } else if (key === "f") {
