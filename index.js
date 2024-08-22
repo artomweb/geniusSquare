@@ -10,15 +10,15 @@ let gridRows = 6;
 
 let pieces = [];
 let pieceNames = {
-  "3T": { colour: "#D6E601", fillIndex: 2 },
-  "3L": { colour: "#21D7FF", fillIndex: 3 },
-  "3R": { colour: "#BA5CFE", fillIndex: 4 },
-  "1D": { colour: "#2878FE", fillIndex: 5 },
-  "4Z": { colour: "#FD3842", fillIndex: 6 },
-  "4L": { colour: "#FF9E01", fillIndex: 7 },
-  "4Sq": { colour: "#00CE9A", fillIndex: 8 },
-  "2S": { colour: "#AD8561", fillIndex: 9 },
-  "4S": { colour: "#7D9FBA", fillIndex: 10 },
+  "3T": { colour: "#D6E601" },
+  "3L": { colour: "#21D7FF" },
+  "3R": { colour: "#BA5CFE" },
+  "1D": { colour: "#2878FE" },
+  "4Z": { colour: "#FD3842" },
+  "4L": { colour: "#FF9E01" },
+  "4Sq": { colour: "#00CE9A" },
+  "2S": { colour: "#AD8561" },
+  "4S": { colour: "#7D9FBA" },
 };
 let draggingPiece;
 
@@ -28,16 +28,15 @@ let paused = false;
 
 let time;
 
-function setup() {
+function setup(forceNew = false) {
   createCanvas(1000, 800);
 
-  dice = rollDice();
-  console.log(dice);
   boardSquareDim = boardDim / 6;
   let piecesX = 600;
   let piecesY = 100;
   let offsetY = 0;
   let offsetX = 0;
+  let fillIndex = 2;
   for (const key in pieceNames) {
     pieces.push(
       new Piece(
@@ -46,7 +45,7 @@ function setup() {
         key,
         boardSquareDim,
         pieceNames[key].colour,
-        pieceNames[key].fillIndex
+        fillIndex++
       )
     );
     offsetY++;
@@ -56,20 +55,7 @@ function setup() {
     }
   }
 
-  for (let i = 0; i < gridRows; i++) {
-    grid[i] = [];
-    for (let j = 0; j < gridCols; j++) {
-      let thisPair = [i, j];
-      if (
-        dice.some((item) => item[0] === thisPair[0] && item[1] === thisPair[1])
-      ) {
-        grid[i][j] = 1; // Mark as occupied based on dice
-      } else {
-        grid[i][j] = 0; // Otherwise, it's available
-      }
-    }
-  }
-
+  grid = loadGame(forceNew);
   console.table(grid);
 
   textSize(100);
@@ -168,6 +154,63 @@ function keyPressed() {
   } else if (key === "f") {
     draggingPiece.flip(grid, boardSquareDim);
   }
+}
+
+function rollDiceAndSetParams(url) {
+  dice = rollDice();
+  diceAlpha = numericToAlphaGame(dice);
+  url.searchParams.set("game", diceAlpha);
+
+  window.history.pushState({}, "", url.toString());
+}
+
+function loadGame(forceNew) {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("game") && !forceNew) {
+    dice = alphaToNumericGame(url.searchParams.get("game"));
+    if (dice.length !== 7) {
+      rollDiceAndSetParams(url);
+    }
+  } else {
+    rollDiceAndSetParams(url);
+  }
+
+  for (let i = 0; i < gridRows; i++) {
+    grid[i] = [];
+    for (let j = 0; j < gridCols; j++) {
+      let thisPair = [i, j];
+      if (
+        dice.some((item) => item[0] === thisPair[0] && item[1] === thisPair[1])
+      ) {
+        grid[i][j] = 1; // Mark as occupied based on dice
+      } else {
+        grid[i][j] = 0; // Otherwise, it's available
+      }
+    }
+  }
+  return grid;
+}
+
+function alphaToNumericGame(gameID) {
+  let dice = [];
+  for (let i = 0; i < gameID.length; i += 2) {
+    dice.push([gameID[i].toUpperCase().charCodeAt(0) - 65, +gameID[i + 1] - 1]);
+  }
+  return dice;
+}
+
+function numericToAlphaGame(dice) {
+  let gameID = "";
+
+  for (let i = 0; i < dice.length; i++) {
+    gameID += String.fromCharCode(dice[i][0] + 65) + (dice[i][1] + 1);
+  }
+
+  return gameID;
+}
+
+function newGame() {
+  setup(true);
 }
 
 function rollDice() {
